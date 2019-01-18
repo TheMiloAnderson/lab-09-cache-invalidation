@@ -26,8 +26,11 @@ app.get('/trails', getTrails);
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 const timeouts = {
-  weather: 1000 * 15,
-  restaurant: 1000 * 60 * 60 * 24
+  weather: 1000 * 60,
+  restaurant: 1000 * 60 * 60 * 24,
+  movie: 1000 * 60 * 60 * 60 * 24 * 7,
+  meetup: 1000 * 60 * 60 * 12,
+  trail: 1000 * 60 * 60 * 24
 }
 
 // --- LOCATION --- //
@@ -94,7 +97,7 @@ Location.prototype.save = function() {
   return client.query(SQL, values);
 };
 
-// --- GENERIC DATA LOOKUP --- //
+// --- GENERIC DATA LOOKUP & HELPER FUNCTIONS--- //
 
 function dataLookup(handler, table) {
   const SQL = `SELECT * FROM ${table} WHERE location_id=$1`;
@@ -131,6 +134,7 @@ function getWeather(req, res) {
       const ageOfResults = (Date.now() - result.rows[0].created_at);
       if (ageOfResults > timeouts.weather) {
         deleteByLocationId('weathers', this.location.id);
+        console.log('Getting new weather data...');
         this.cacheMiss();
       }
     },
@@ -176,7 +180,12 @@ function getRestaurants(req, res) {
   const handler = {
     location: req.query.data,
     cacheHit: function(result) {
-      res.send(result.rows);
+      const ageOfResults = (Date.now() - result.rows[0].created_at);
+      if (ageOfResults > timeouts.restaurant) {
+        deleteByLocationId('restaurants', this.location.id);
+        console.log('Getting new restaurant data...');
+        this.cacheMiss();
+      }
     },
     cacheMiss: function() {
       Restaurants.fetch(req.query.data)
@@ -207,10 +216,11 @@ function Restaurants(restaurant) {
   this.rating = restaurant.rating;
   this.price = restaurant.price;
   this.image_url = restaurant.image_url;
+  this.created_at = Date.now();
 }
 
 Restaurants.prototype.save = function(id) {
-  const SQL = `INSERT INTO restaurants (name, url, rating, price, image_url, location_id) VALUES ($1, $2, $3, $4, $5, $6);`;
+  const SQL = `INSERT INTO restaurants (name, url, rating, price, image_url, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7);`;
   const values = Object.values(this);
   values.push(id);
   client.query(SQL, values);
@@ -222,7 +232,12 @@ function getMovies(req, res) {
   const handler = {
     location: req.query.data,
     cacheHit: function(result) {
-      res.send(result.rows);
+      const ageOfResults = (Date.now() - result.rows[0].created_at);
+      if (ageOfResults > timeouts.movie) {
+        deleteByLocationId('movies', this.location.id);
+        console.log('Getting new movie data...');
+        this.cacheMiss();
+      }
     },
     cacheMiss: function() {
       Movies.fetch(req.query.data)
@@ -257,10 +272,11 @@ function Movies(movie) {
     movie.overview = movie.overview.slice(0, 251) + '...';
   }
   this.overview = movie.overview;
+  this.created_at = Date.now();
 }
 
 Movies.prototype.save = function(id) {
-  const SQL = `INSERT INTO movies (title, released_on, total_votes, average_votes, popularity, image_url, overview, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`;
+  const SQL = `INSERT INTO movies (title, released_on, total_votes, average_votes, popularity, image_url, overview, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`;
   const values = Object.values(this);
   values.push(id);
   client.query(SQL, values);
@@ -272,7 +288,12 @@ function getMeetups(req, res) {
   const handler = {
     location: req.query.data,
     cacheHit: function(result) {
-      res.send(result.rows);
+      const ageOfResults = (Date.now() - result.rows[0].created_at);
+      if (ageOfResults > timeouts.meetup) {
+        deleteByLocationId('meetups', this.location.id);
+        console.log('Getting new meetup data...');
+        this.cacheMiss();
+      }
     },
     cacheMiss: function() {
       Meetup.fetch(req.query.data)
@@ -302,10 +323,11 @@ function Meetup(meetup) {
   this.host = meetup.group.name;
   this.creation_date = new Date(meetup.created)
     .toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
+  this.created_at = Date.now();
 }
 
 Meetup.prototype.save = function(id) {
-  const SQL = `INSERT INTO meetups (link, name, host, creation_date, location_id) VALUES ($1, $2, $3, $4, $5);`;
+  const SQL = `INSERT INTO meetups (link, name, host, creation_date, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6);`;
   const values = Object.values(this);
   values.push(id);
   client.query(SQL, values);
@@ -317,11 +339,18 @@ function getTrails(req, res) {
   const handler = {
     location: req.query.data,
     cacheHit: function(result) {
-      res.send(result.rows);
+      const ageOfResults = (Date.now() - result.rows[0].created_at);
+      if (ageOfResults > timeouts.trail) {
+        deleteByLocationId('trails', this.location.id);
+        console.log('Getting new trail data...');
+        this.cacheMiss();
+      }
     },
     cacheMiss: function() {
       Trail.fetch(req.query.data)
-        .then((results) => res.send(results))
+        .then((results) => {
+          res.send(results);
+        })
         .catch(console.error);
     }
   }
@@ -329,11 +358,11 @@ function getTrails(req, res) {
 }
 
 Trail.fetch = function(location) {
-  const url = `https://www.hikingproject.com/data/get-trails?lat=${loncation.latitude}&lon=${location.longitude}&key=${TRAILS_API_KEY}&maxResults=10`;
+  const url = `https://www.hikingproject.com/data/get-trails?lat=${location.latitude}&lon=${location.longitude}&key=${process.env.TRAILS_API_KEY}&maxResults=10`;
   return superagent.get(url)
     .then((result) => {
-      const trails = result.body.results.map((trail) => {
-        const trailObj = new Meetup(trail);
+      const trails = result.body.trails.map((trail) => {
+        const trailObj = new Trail(trail);
         trailObj.save(location.id);
         return trailObj;
       });
@@ -342,23 +371,24 @@ Trail.fetch = function(location) {
 }
 
 function Trail(trail) {
-  this.title = trail.name;
-  this.trail_url= trail.url;
+  this.name = trail.name;
+  this.trail_url = trail.url;
   this.location = trail.location;
   this.length = trail.length;
   const dateTime = new Date(trail.conditionDate);
   this.condtion_date = dateTime.toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
   this.condtion_time = dateTime.toLocaleTimeString('en-US');
-  this.condtions = trail.conditionDetails;
+  this.condtions = trail.conditionStatus;
   this.stars = trail.stars;
   this.star_votes = trail.starVotes;
   this.summary = trail.summary;
-
+  this.created_at = Date.now();
 }
 
 Trail.prototype.save = function(id) {
-  const SQL = `INSERT INTO trails (title, trail_url, location, length, condition_date, condition_time, stars, star_votes, summary, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`;
+  const SQL = `INSERT INTO trails (name, trail_url, location, length, condition_date, condition_time, conditions, stars, star_votes, summary, created_at, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`;
   const values = Object.values(this);
   values.push(id);
   client.query(SQL, values);
 }
+

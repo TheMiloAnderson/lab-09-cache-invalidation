@@ -2,6 +2,7 @@ drop table if exists weathers;
 drop table if exists restaurants;
 drop table if exists movies;
 drop table if exists meetups;
+drop table if exists trails;
 drop table if exists locations;
 
 create table locations (
@@ -28,6 +29,7 @@ create table restaurants (
   rating numeric(2,1),
   price varchar(5),
   image_url varchar(255),
+  created_at bigint,
   location_id integer not null,
   foreign key (location_id) references locations (id)
 );
@@ -41,6 +43,7 @@ create table movies (
   popularity numeric(5,3),
   image_url varchar(255),
   overview varchar(255),
+  created_at bigint,
   location_id integer not null,
   foreign key (location_id) references locations (id)
 );
@@ -51,20 +54,24 @@ create table meetups (
   name varchar(255),
   host varchar(255),
   creation_date varchar(25),
+  created_at bigint,
   location_id integer not null,
-  foreign key (location_id)  references locations (id)
+  foreign key (location_id) references locations (id)
   );
 
 create table trails (
   id serial primary key,
-  title varchar(255), 
+  name varchar(255), 
   trail_url varchar(255),
   location varchar(255),
-  length number(3,1),
+  length numeric(4,1),
   condition_date varchar(25), 
   condition_time varchar(25), 
-  stars number(2,1), 
-  star_votes number (4,0), 
+  conditions varchar(255),
+  stars numeric(3,1), 
+  star_votes numeric(5,0), 
   summary varchar(255),
+  created_at bigint,
+  location_id integer not null,
   foreign key (location_id) references locations (id)
-)
+);
