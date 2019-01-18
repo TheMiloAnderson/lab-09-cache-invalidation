@@ -321,7 +321,9 @@ function getTrails(req, res) {
     },
     cacheMiss: function() {
       Trail.fetch(req.query.data)
-        .then((results) => res.send(results))
+        .then((results) => {
+          res.send(results);
+        })
         .catch(console.error);
     }
   }
@@ -329,36 +331,37 @@ function getTrails(req, res) {
 }
 
 Trail.fetch = function(location) {
-  const url = `https://www.hikingproject.com/data/get-trails?lat=${loncation.latitude}&lon=${location.longitude}&key=${TRAILS_API_KEY}&maxResults=10`;
+  const url = `https://www.hikingproject.com/data/get-trails?lat=${location.latitude}&lon=${location.longitude}&key=${process.env.TRAILS_API_KEY}&maxResults=10`;
   return superagent.get(url)
     .then((result) => {
-      const trails = result.body.results.map((trail) => {
-        const trailObj = new Meetup(trail);
+      const trails = result.body.trails.map((trail) => {
+        const trailObj = new Trail(trail);
         trailObj.save(location.id);
         return trailObj;
       });
+      //console.log(trails);
       return trails;
     });
 }
 
 function Trail(trail) {
-  this.title = trail.name;
-  this.trail_url= trail.url;
+  this.name = trail.name;
+  this.trail_url = trail.url;
   this.location = trail.location;
   this.length = trail.length;
   const dateTime = new Date(trail.conditionDate);
   this.condtion_date = dateTime.toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
   this.condtion_time = dateTime.toLocaleTimeString('en-US');
-  this.condtions = trail.conditionDetails;
+  this.condtions = trail.conditionStatus;
   this.stars = trail.stars;
   this.star_votes = trail.starVotes;
   this.summary = trail.summary;
-
 }
 
 Trail.prototype.save = function(id) {
-  const SQL = `INSERT INTO trails (title, trail_url, location, length, condition_date, condition_time, stars, star_votes, summary, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`;
+  const SQL = `INSERT INTO trails (name, trail_url, location, length, condition_date, condition_time, conditions, stars, star_votes, summary, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`;
   const values = Object.values(this);
   values.push(id);
   client.query(SQL, values);
 }
+
