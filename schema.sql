@@ -1,6 +1,7 @@
 drop table if exists weathers;
 drop table if exists restaurants;
 drop table if exists movies;
+drop table if exists meetups;
 drop table if exists locations;
 
 create table locations (
@@ -40,6 +41,16 @@ create table movies (
   popularity numeric(5,3),
   image_url varchar(255),
   overview varchar(255),
+  location_id integer not null,
+  foreign key (location_id) references locations (id)
+);
+
+create table meetups (
+  id serial primary key,
+  link varchar(255),
+  name varchar(255),
+  host varchar(255),
+  creation_date varchar(25),
   location_id integer not null,
   foreign key (location_id) references locations (id)
 );
