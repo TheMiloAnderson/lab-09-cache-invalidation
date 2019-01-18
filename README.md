@@ -35,13 +35,13 @@ Code that was refactored today was based on collaborations with Jessica and Chri
 <!-- Give credit (and a link) to other people or resources that helped you build this application. -->
 
 
-> Number and name of feature: locations data caching
-> Estimate of time needed to complete: 2:00
-> Start time: 9:00
-> Finish time: 11:30
-> Actual time needed to complete: 2:30
+> Number and name of feature: feature 1 -- adding meetup 
+> Estimate of time needed to complete: 30 -45 min
+> Start time: 9:15
+> Finish time: 10:19
+> Actual time needed to complete: 1hr
 
-> Number and name of feature: refactor dataLookup
+> Number and name of feature: feature 2 --adding trail info
 > Estimate of time needed to complete: 1:00
 > Start time: 11:30
 > Finish time: 12:30

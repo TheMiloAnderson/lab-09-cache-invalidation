@@ -52,5 +52,19 @@ create table meetups (
   host varchar(255),
   creation_date varchar(25),
   location_id integer not null,
+  foreign key (location_id)  references locations (id)
+  );
+
+create table trails (
+  id serial primary key,
+  title varchar(255), 
+  trail_url varchar(255),
+  location varchar(255),
+  length number(3,1),
+  condition_date varchar(25), 
+  condition_time varchar(25), 
+  stars number(2,1), 
+  star_votes number (4,0), 
+  summary varchar(255),
   foreign key (location_id) references locations (id)
-);
+)
