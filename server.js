@@ -21,6 +21,7 @@ app.get('/weather', getWeather);
 app.get('/yelp', getRestaurants);
 app.get('/movies', getMovies);
 app.get('/meetups', getMeetups);
+app.get('/trails', getTrails);
 
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
@@ -283,7 +284,7 @@ function getMeetups(req, res) {
 }
 
 Meetup.fetch = function(location) {
-  const url = `https://api.meetup.com/2/open_events?lat=${location.latitude}&lon=${location.longitude}&key=${process.env.MEETUP_API_KEY}&sign=true&only=group,event_url,name,created&page=10`;
+  const url = `https://api.meetup.com/2/open_events?lat=${location.latitude}&lon=${location.longitude}&key=${process.env.MEETUP_API_KEY}&sign=true&only=group,event_url,name,created&page=20`;
   return superagent.get(url)
     .then((result) => {
       const meetups = result.body.results.map((meetup) => {
@@ -301,6 +302,57 @@ function Meetup(meetup) {
   this.host = meetup.group.name;
   this.creation_date = new Date(meetup.created)
     .toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
+}
+
+Meetup.prototype.save = function(id) {
+  const SQL = `INSERT INTO meetups (link, name, host, creation_date, location_id) VALUES ($1, $2, $3, $4, $5);`;
+  const values = Object.values(this);
+  values.push(id);
+  client.query(SQL, values);
+}
+
+// --- TRAILS --- //
+
+function getTrails(req, res) {
+  const handler = {
+    location: req.query.data,
+    cacheHit: function(result) {
+      res.send(result.rows);
+    },
+    cacheMiss: function() {
+      Trail.fetch(req.query.data)
+        .then((results) => res.send(results))
+        .catch(console.error);
+    }
+  }
+  dataLookup(handler, 'trails');
+}
+
+Trail.fetch = function(location) {
+  const url = `https://api.meetup.com/2/open_events?lat=${location.latitude}&lon=${location.longitude}&key=${process.env.MEETUP_API_KEY}&sign=true&only=group,event_url,name,created&page=20`;
+  return superagent.get(url)
+    .then((result) => {
+      const trails = result.body.results.map((trail) => {
+        const trailObj = new Meetup(trail);
+        trailObj.save(location.id);
+        return trailObj;
+      });
+      return trails;
+    });
+}
+
+function Trail(trail) {
+  this.title = trail.name;
+  this.trail_url= trail.trail_url;
+  this.location = trail.location;
+  this.length = trail.length;
+  this.condtion_date = trail.conditionDate.split(0,9);
+  this.condtion_time = trail.conditionDate.split(9,17);
+  this.condtions = trail.conditions;
+  this.stars = trail.stars;
+  this.starvotes = trail.star_votes;
+  this.summary = trail.conditions;
+ 
 }
 
 Meetup.prototype.save = function(id) {
