@@ -329,7 +329,7 @@ function getTrails(req, res) {
 }
 
 Trail.fetch = function(location) {
-  const url = `https://api.meetup.com/2/open_events?lat=${location.latitude}&lon=${location.longitude}&key=${process.env.MEETUP_API_KEY}&sign=true&only=group,event_url,name,created&page=20`;
+  const url = `https://www.hikingproject.com/data/get-trails?lat=${loncation.latitude}&lon=${location.longitude}&key=${TRAILS_API_KEY}&maxResults=10`;
   return superagent.get(url)
     .then((result) => {
       const trails = result.body.results.map((trail) => {
@@ -343,20 +343,21 @@ Trail.fetch = function(location) {
 
 function Trail(trail) {
   this.title = trail.name;
-  this.trail_url= trail.trail_url;
+  this.trail_url= trail.url;
   this.location = trail.location;
   this.length = trail.length;
-  this.condtion_date = trail.conditionDate.split(0,9);
-  this.condtion_time = trail.conditionDate.split(9,17);
-  this.condtions = trail.conditions;
+  const dateTime = new Date(trail.conditionDate);
+  this.condtion_date = dateTime.toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
+  this.condtion_time = dateTime.toLocaleTimeString('en-US');
+  this.condtions = trail.conditionDetails;
   this.stars = trail.stars;
-  this.starvotes = trail.star_votes;
-  this.summary = trail.conditions;
- 
+  this.star_votes = trail.starVotes;
+  this.summary = trail.summary;
+
 }
 
-Meetup.prototype.save = function(id) {
-  const SQL = `INSERT INTO meetups (link, name, host, creation_date, location_id) VALUES ($1, $2, $3, $4, $5);`;
+Trail.prototype.save = function(id) {
+  const SQL = `INSERT INTO trails (title, trail_url, location, length, condition_date, condition_time, stars, star_votes, summary, location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`;
   const values = Object.values(this);
   values.push(id);
   client.query(SQL, values);
