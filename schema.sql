@@ -29,6 +29,7 @@ create table restaurants (
   rating numeric(2,1),
   price varchar(5),
   image_url varchar(255),
+  created_at bigint,
   location_id integer not null,
   foreign key (location_id) references locations (id)
 );
@@ -42,6 +43,7 @@ create table movies (
   popularity numeric(5,3),
   image_url varchar(255),
   overview varchar(255),
+  created_at bigint,
   location_id integer not null,
   foreign key (location_id) references locations (id)
 );
@@ -52,6 +54,7 @@ create table meetups (
   name varchar(255),
   host varchar(255),
   creation_date varchar(25),
+  created_at bigint,
   location_id integer not null,
   foreign key (location_id) references locations (id)
   );
@@ -68,6 +71,7 @@ create table trails (
   stars numeric(3,1), 
   star_votes numeric(5,0), 
   summary varchar(255),
+  created_at bigint,
   location_id integer not null,
   foreign key (location_id) references locations (id)
 );
