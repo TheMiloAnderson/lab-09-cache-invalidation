@@ -97,7 +97,7 @@ Location.prototype.save = function() {
   return client.query(SQL, values);
 };
 
-// --- GENERIC DATA LOOKUP & HELPER FUNCTIONS--- //
+// --- GENERIC DATA LOOKUP & HELPER FUNCTIONS --- //
 
 function dataLookup(handler, table) {
   const SQL = `SELECT * FROM ${table} WHERE location_id=$1`;
@@ -376,9 +376,9 @@ function Trail(trail) {
   this.location = trail.location;
   this.length = trail.length;
   const dateTime = new Date(trail.conditionDate);
-  this.condtion_date = dateTime.toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
-  this.condtion_time = dateTime.toLocaleTimeString('en-US');
-  this.condtions = trail.conditionStatus;
+  this.condition_date = dateTime.toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
+  this.condition_time = dateTime.toLocaleTimeString('en-US');
+  this.conditions = trail.conditionStatus;
   this.stars = trail.stars;
   this.star_votes = trail.starVotes;
   this.summary = trail.summary;
