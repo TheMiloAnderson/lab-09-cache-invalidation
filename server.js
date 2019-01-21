@@ -136,6 +136,8 @@ function getWeather(req, res) {
         deleteByLocationId('weathers', this.location.id);
         console.log('Getting new weather data...');
         this.cacheMiss();
+      } else {
+        res.send(result.rows);
       }
     },
     cacheMiss: function() {
@@ -185,6 +187,8 @@ function getRestaurants(req, res) {
         deleteByLocationId('restaurants', this.location.id);
         console.log('Getting new restaurant data...');
         this.cacheMiss();
+      } else {
+        res.send(result.rows);
       }
     },
     cacheMiss: function() {
@@ -237,6 +241,8 @@ function getMovies(req, res) {
         deleteByLocationId('movies', this.location.id);
         console.log('Getting new movie data...');
         this.cacheMiss();
+      } else {
+        res.send(result.rows);
       }
     },
     cacheMiss: function() {
@@ -293,6 +299,8 @@ function getMeetups(req, res) {
         deleteByLocationId('meetups', this.location.id);
         console.log('Getting new meetup data...');
         this.cacheMiss();
+      } else {
+        res.send(result.rows);
       }
     },
     cacheMiss: function() {
@@ -344,6 +352,8 @@ function getTrails(req, res) {
         deleteByLocationId('trails', this.location.id);
         console.log('Getting new trail data...');
         this.cacheMiss();
+      } else {
+        res.send(result.rows);
       }
     },
     cacheMiss: function() {
